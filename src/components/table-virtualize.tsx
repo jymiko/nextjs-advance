@@ -130,12 +130,12 @@ const TableVirtualize = () => {
       <div className="p-2">
         <div className="h-2" />
       <div
-        className="container"
+        className="border  max-h-[500px] max-w-screen overflow-auto"
         onScroll={e => fetchOnBottomReach(e.target as HTMLDivElement)}
         ref={tableContainerRef}
       >
-        <table>
-          <thead>
+        <table className='border-collapse border-spacing-0 table-fixed w-full'>
+          <thead className='sticky bg-black top-0 w-full'>
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map(header => {
@@ -144,6 +144,7 @@ const TableVirtualize = () => {
                       key={header.id}
                       colSpan={header.colSpan}
                       style={{ width: header.getSize() }}
+                      className='border-b border-r p-1 text-left'
                     >
                       {header.isPlaceholder ? null : (
                         <div
@@ -173,7 +174,7 @@ const TableVirtualize = () => {
           <tbody>
             {paddingTop > 0 && (
               <tr>
-                <td style={{ height: `${paddingTop}px` }} />
+                <td className='p-2' style={{ height: `${paddingTop}px` }} />
               </tr>
             )}
             {virtualRows.map(virtualRow => {
@@ -182,7 +183,7 @@ const TableVirtualize = () => {
                 <tr key={row.id}>
                   {row.getVisibleCells().map(cell => {
                     return (
-                      <td key={cell.id}>
+                      <td key={cell.id} className='p-2'>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -195,7 +196,7 @@ const TableVirtualize = () => {
             })}
             {paddingBottom > 0 && (
               <tr>
-                <td style={{ height: `${paddingBottom}px` }} />
+                <td className='p-2' style={{ height: `${paddingBottom}px` }} />
               </tr>
             )}
           </tbody>
