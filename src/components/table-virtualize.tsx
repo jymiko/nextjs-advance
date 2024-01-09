@@ -115,6 +115,7 @@ const TableVirtualize = () => {
     size: rows.length,
     overscan: 10,
   })
+  
   const { virtualItems: virtualRows, totalSize } = rowVirtualizer
   const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0
   const paddingBottom =
@@ -134,8 +135,8 @@ const TableVirtualize = () => {
         onScroll={e => fetchOnBottomReach(e.target as HTMLDivElement)}
         ref={tableContainerRef}
       >
-        <table className='border-collapse border-spacing-0 table-fixed w-full'>
-          <thead className='sticky bg-black top-0 w-full'>
+        <table className='border-separate border-spacing-0 table-fixed w-full'>
+          <thead className='sticky bg-white dark:bg-black top-0 w-full'>
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map(header => {
