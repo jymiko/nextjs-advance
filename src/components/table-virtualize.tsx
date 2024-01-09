@@ -4,6 +4,7 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getSortedRowModel,
   Row,
   SortingState,
@@ -15,12 +16,15 @@ import {
 } from '@tanstack/react-query'
 import { useVirtual } from 'react-virtual'
 import { fetchData, Person, PersonApiResponse } from '@/dummy/makeData'
+import { Input } from './ui/input'
 
 const TableVirtualize = () => {
   const fetchSize = 100
   const renderer = useReducer(() => ({}), {})[1]
   const tableContainerRef = useRef<HTMLDivElement>(null)
   const [sorting, setSorting] = useState<SortingState>([])
+  const [globalValue, setGlobalValue] = useState<string>('')
+
   const column = useMemo<ColumnDef<Person>[]>(
     () => [
       {
@@ -101,11 +105,14 @@ const TableVirtualize = () => {
     data:flatData,
     columns:column,
     state: {
-      sorting
+      sorting,
+      globalFilter: globalValue
     },
     onSortingChange:setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onGlobalFilterChange: setGlobalValue,
     debugTable: true,
   })
 
@@ -129,86 +136,94 @@ const TableVirtualize = () => {
 
   return (
       <div className="p-2">
-        <div className="h-2" />
-      <div
-        className="border  max-h-[500px] max-w-screen overflow-auto"
-        onScroll={e => fetchOnBottomReach(e.target as HTMLDivElement)}
-        ref={tableContainerRef}
-      >
-        <table className='border-separate border-spacing-0 table-fixed w-full'>
-          <thead className='sticky bg-white dark:bg-black top-0 w-full'>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => {
-                  return (
-                    <th
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      style={{ width: header.getSize() }}
-                      className='border-b border-r p-1 text-left'
-                    >
-                      {header.isPlaceholder ? null : (
-                        <div
-                          {...{
-                            className: header.column.getCanSort()
-                              ? 'cursor-pointer select-none'
-                              : '',
-                            onClick: header.column.getToggleSortingHandler(),
-                          }}
-                        >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                          {{
-                            asc: ' 🔼',
-                            desc: ' 🔽',
-                          }[header.column.getIsSorted() as string] ?? null}
-                        </div>
-                      )}
-                    </th>
-                  )
-                })}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {paddingTop > 0 && (
-              <tr>
-                <td className='p-2' style={{ height: `${paddingTop}px` }} />
-              </tr>
-            )}
-            {virtualRows.map(virtualRow => {
-              const row = rows[virtualRow.index] as Row<Person>
-              return (
-                <tr key={row.id}>
-                  {row.getVisibleCells().map(cell => {
+        <Input
+          placeholder='Search all columns...'
+          className='max-w-[250px]'
+          value={globalValue ?? ''}
+          onChange={(e) => {
+            setGlobalValue(e.target.value)
+          }}
+        />
+        <div className="h-4" />
+        <div
+          className="border  max-h-[500px] max-w-screen overflow-auto"
+          onScroll={e => fetchOnBottomReach(e.target as HTMLDivElement)}
+          ref={tableContainerRef}
+        >
+          <table className='border-separate border-spacing-0 table-fixed w-full'>
+            <thead className='sticky bg-white dark:bg-black top-0 w-full'>
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => {
                     return (
-                      <td key={cell.id} className='p-2'>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
+                      <th
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        style={{ width: header.getSize() }}
+                        className='border-b border-r p-1 text-left'
+                      >
+                        {header.isPlaceholder ? null : (
+                          <div
+                            {...{
+                              className: header.column.getCanSort()
+                                ? 'cursor-pointer select-none'
+                                : '',
+                              onClick: header.column.getToggleSortingHandler(),
+                            }}
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                            {{
+                              asc: ' 🔼',
+                              desc: ' 🔽',
+                            }[header.column.getIsSorted() as string] ?? null}
+                          </div>
                         )}
-                      </td>
+                      </th>
                     )
                   })}
                 </tr>
-              )
-            })}
-            {paddingBottom > 0 && (
-              <tr>
-                <td className='p-2' style={{ height: `${paddingBottom}px` }} />
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      <div>
-        Fetched {flatData.length} of {totalDbCount} Rows.
-      </div>
-      <div>
-        <button onClick={() => renderer()}>Force Rerender</button>
-      </div>
+              ))}
+            </thead>
+            <tbody>
+              {paddingTop > 0 && (
+                <tr>
+                  <td className='p-2' style={{ height: `${paddingTop}px` }} />
+                </tr>
+              )}
+              {virtualRows.map(virtualRow => {
+                const row = rows[virtualRow.index] as Row<Person>
+                return (
+                  <tr key={row.id}>
+                    {row.getVisibleCells().map(cell => {
+                      return (
+                        <td key={cell.id} className='p-2'>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                )
+              })}
+              {paddingBottom > 0 && (
+                <tr>
+                  <td className='p-2' style={{ height: `${paddingBottom}px` }} />
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          Fetched {flatData.length} of {totalDbCount} Rows.
+        </div>
+        <div>
+          <button onClick={() => renderer()}>Force Rerender</button>
+        </div>
       </div>
   )
 }
